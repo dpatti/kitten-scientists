@@ -151,7 +151,9 @@ export class UserInterface extends UiComponent {
     this._addRule(
       `#ks {
         margin-bottom: 10px;
-        padding-right: 10px;
+        padding-right: 20px;
+        grid-row: 1 / -1;
+        min-width: 350px;
       }`,
     );
     this._addRule(
@@ -175,8 +177,7 @@ export class UserInterface extends UiComponent {
     );
     this._addRule(
       `#ks ul li { 
-        float: left;
-        width: 100%;
+        display: flow-root;
         border-bottom: 1px solid transparent;
         transition: .3s;
       }`,
@@ -368,7 +369,16 @@ export class UserInterface extends UiComponent {
     );
 
     // Ensure the right column gets a scrollbar, when our content extends it too far down.
-    this._addRule("#game #rightColumn { overflow-y: auto }");
+    this._addRule(
+      `#game #rightColumn {
+         display: inline-grid;
+         grid-template-rows: repeat(20, 1fr);
+         grid-auto-flow: column;
+         overflow-y: auto;
+         max-width: initial;
+         width: initial;
+       }`,
+    );
 
     this._addRule("#game .res-row .res-cell.ks-stock-above { color: green; }");
     this._addRule("#game .res-row .res-cell.ks-stock-below { color: red; }");
