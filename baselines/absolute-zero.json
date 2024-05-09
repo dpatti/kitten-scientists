@@ -146,6 +146,7 @@
     "gatherCatnip": { "enabled": false },
     "turnOnSteamworks": { "enabled": false },
     "turnOnMagnetos": { "enabled": false },
+    "turnOnReactors": { "enabled": false },
     "upgradeBuildings": {
       "enabled": false,
       "buildings": {

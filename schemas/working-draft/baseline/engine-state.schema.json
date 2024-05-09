@@ -735,6 +735,18 @@
           "required": ["enabled"],
           "type": "object"
         },
+        "turnOnReactors": {
+          "additionalProperties": false,
+          "description": "Should Reactors be turned on if they are turned off?",
+          "properties": {
+            "enabled": {
+              "description": "Turn the Reactors on?",
+              "type": "boolean"
+            }
+          },
+          "required": ["enabled"],
+          "type": "object"
+        },
         "upgradeBuildings": {
           "additionalProperties": false,
           "description": "Configuration for building upgrades.",
@@ -811,6 +823,7 @@
         "gatherCatnip",
         "turnOnSteamworks",
         "turnOnMagnetos",
+        "turnOnReactors",
         "upgradeBuildings"
       ],
       "type": "object"
