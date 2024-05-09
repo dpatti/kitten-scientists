@@ -239,6 +239,13 @@ export class BulkPurchaseHelper {
       tempPool[res.name] = this._workshopManager.getValueAvailable(res.name);
     }
 
+    // Shuffle builds for better distribution, especially in the early game. It
+    // doesn't make sense to favor buildings in order of listing.
+    for (let i = potentialBuilds.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [potentialBuilds[i], potentialBuilds[j]] = [potentialBuilds[j], potentialBuilds[i]];
+    }
+
     for (const potentialBuild of potentialBuilds) {
       // The item in the builds cache, that we're currently processing.
       const buildCount = this._getPossibleBuildCount(potentialBuild, metaData, tempPool);
