@@ -371,12 +371,12 @@ export class UserInterface extends UiComponent {
     // Ensure the right column gets a scrollbar, when our content extends it too far down.
     this._addRule(
       `#game #rightColumn {
-         display: inline-grid;
+         overflow-y: auto;
+         /* display: inline-grid;
          grid-template-rows: repeat(20, 1fr);
          grid-auto-flow: column;
-         overflow-y: auto;
          max-width: initial;
-         width: initial;
+         width: initial; */
        }`,
     );
 

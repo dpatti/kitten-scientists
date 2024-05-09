@@ -48,6 +48,7 @@ export class BulkPurchaseHelper {
    *
    * @param builds All potential builds.
    * @param metaData The metadata for the potential builds.
+   * @param buttons _
    * @param trigger The configured trigger threshold for these builds.
    * @param sourceTab The tab these builds originate from.
    * @returns All the possible builds.
@@ -79,6 +80,7 @@ export class BulkPurchaseHelper {
         | ZiggurathUpgradeInfo
       >
     >,
+    buttons: Partial<Record<AllItems, BuildButton>>,
     trigger: number,
     sourceTab?: "bonfire" | "space",
   ): Array<BulkBuildListItem> {
@@ -90,6 +92,7 @@ export class BulkPurchaseHelper {
       spot: number;
       prices: Array<Price>;
       priceRatio: number;
+      priceRoot: number;
       source?: "bonfire" | "space";
       limit: number;
       val: number;
@@ -139,15 +142,19 @@ export class BulkPurchaseHelper {
       }
 
       // Get the prices and the price ratio of this build.
-      const prices = mustExist(
+      const basePrices = mustExist(
         this._isStagedBuild(buildMetaData)
           ? buildMetaData.stages[buildMetaData.stage].prices
           : buildMetaData.prices,
       );
+      const button = buttons[name];
+      const [prices, priceRoot] = button
+        ? [button.controller.getPrices(button.model), buildMetaData.val]
+        : [basePrices, 0];
       const priceRatio = this.getPriceRatio(buildMetaData, sourceTab);
 
       // Check if we can build this item.
-      if (!this.singleBuildPossible(buildMetaData, prices, priceRatio, sourceTab)) {
+      if (!this.singleBuildPossible(buildMetaData, prices, priceRatio, priceRoot, sourceTab)) {
         continue;
       }
 
@@ -189,7 +196,7 @@ export class BulkPurchaseHelper {
           );
           const resPriceModifier = 1 - resPriceDiscount;
           itemPrices.push({
-            val: price.val * priceModifier * resPriceModifier,
+            val: priceRoot > 0 ? price.val : price.val * priceModifier * resPriceModifier,
             name: price.name,
           });
         }
@@ -212,6 +219,7 @@ export class BulkPurchaseHelper {
           spot: counter,
           prices: itemPrices,
           priceRatio: priceRatio,
+          priceRoot: priceRoot,
           source: sourceTab,
           limit: build.max || 0,
           val: buildMetaData.val,
@@ -255,6 +263,7 @@ export class BulkPurchaseHelper {
    * @param buildCacheItem.spot ?
    * @param buildCacheItem.prices ?
    * @param buildCacheItem.priceRatio ?
+   * @param buildCacheItem.priceRoot ?
    * @param buildCacheItem.source ?
    * @param buildCacheItem.limit ?
    * @param buildCacheItem.val ?
@@ -271,6 +280,7 @@ export class BulkPurchaseHelper {
       spot: number;
       prices: Array<Price>;
       priceRatio: number;
+      priceRoot: number;
       source?: "bonfire" | "space";
       limit: number;
       val: number;
@@ -305,6 +315,7 @@ export class BulkPurchaseHelper {
     const buildMetaData = mustExist(metaData[buildCacheItem.id]);
     const prices = buildCacheItem.prices;
     const priceRatio = buildCacheItem.priceRatio;
+    const priceRoot = buildCacheItem.priceRoot;
     const source = buildCacheItem.source;
     let maxItemsBuilt = false;
 
@@ -341,11 +352,13 @@ export class BulkPurchaseHelper {
             tempPool["oil"] < oilPrice * Math.pow(1.05, unknown_k + buildMetaData.val);
         } else if (cryoKarma) {
           maxItemsBuilt =
-            tempPool["karma"] < karmaPrice * Math.pow(priceRatio, unknown_k + buildMetaData.val);
+            tempPool["karma"] <
+            karmaPrice * Math.pow(priceRatio, unknown_k + buildMetaData.val - priceRoot);
         } else {
           maxItemsBuilt =
             tempPool[prices[priceIndex].name] <
-            prices[priceIndex].val * Math.pow(priceRatio, unknown_k + buildMetaData.val);
+            prices[priceIndex].val *
+              Math.pow(priceRatio, unknown_k + buildMetaData.val - priceRoot);
         }
 
         // Check if any special builds have reached their reasonable limit of units to build.
@@ -374,7 +387,8 @@ export class BulkPurchaseHelper {
                 prices[priceIndex2].val *
                 (1 - this._host.game.getLimitedDR(oilReductionRatio, 0.75));
 
-              tempPool["oil"] += oilPriceRefund * Math.pow(1.05, unknown_k + buildMetaData.val);
+              tempPool["oil"] +=
+                oilPriceRefund * Math.pow(1.05, unknown_k + buildMetaData.val - priceRoot);
 
               // TODO: This seems to just be `cryoKarma`.
             } else if (
@@ -387,10 +401,11 @@ export class BulkPurchaseHelper {
                 (1 - this._host.game.getLimitedDR(0.01 * burnedParagonRatio, 1.0));
 
               tempPool["karma"] +=
-                karmaPriceRefund * Math.pow(priceRatio, unknown_k + buildMetaData.val);
+                karmaPriceRefund * Math.pow(priceRatio, unknown_k + buildMetaData.val - priceRoot);
             } else {
               const refundVal =
-                prices[priceIndex2].val * Math.pow(priceRatio, unknown_k + buildMetaData.val);
+                prices[priceIndex2].val *
+                Math.pow(priceRatio, unknown_k + buildMetaData.val - priceRoot);
               tempPool[prices[priceIndex2].name] +=
                 prices[priceIndex2].name === "void" ? Math.ceil(refundVal) : refundVal;
             }
@@ -412,12 +427,14 @@ export class BulkPurchaseHelper {
 
         // Deduct the cost of this price from the temporary resource cache.
         if (spaceOil) {
-          tempPool["oil"] -= oilPrice * Math.pow(1.05, unknown_k + buildMetaData.val);
+          tempPool["oil"] -= oilPrice * Math.pow(1.05, unknown_k + buildMetaData.val - priceRoot);
         } else if (cryoKarma) {
-          tempPool["karma"] -= karmaPrice * Math.pow(priceRatio, unknown_k + buildMetaData.val);
+          tempPool["karma"] -=
+            karmaPrice * Math.pow(priceRatio, unknown_k + buildMetaData.val - priceRoot);
         } else {
           const newPriceValue =
-            prices[priceIndex].val * Math.pow(priceRatio, unknown_k + buildMetaData.val);
+            prices[priceIndex].val *
+            Math.pow(priceRatio, unknown_k + buildMetaData.val - priceRoot);
           tempPool[prices[priceIndex].name] -=
             prices[priceIndex].name === "void" ? Math.ceil(newPriceValue) : newPriceValue;
         }
@@ -542,6 +559,7 @@ export class BulkPurchaseHelper {
    * TODO: Why is this relevant if we only care about a single build being possible?
    * @param prices The current prices for the build.
    * @param priceRatio The global price ratio modifier.
+   * @param priceRoot The number of buildings the prices are relative to
    * @param source What tab did the build originate from?
    * @returns `true` if the build is possible; `false` otherwise.
    */
@@ -549,8 +567,10 @@ export class BulkPurchaseHelper {
     build: { name: AllBuildings; val: number },
     prices: Array<Price>,
     priceRatio: number,
+    priceRoot: number,
     source?: "bonfire" | "space",
   ): boolean {
+    const val = build.val - priceRoot;
     // Determine price reduction on this build.
     const pricesDiscount = this._host.game.getLimitedDR(
       this._host.game.getEffect(`${build.name}CostReduction` as const),
@@ -577,7 +597,7 @@ export class BulkPurchaseHelper {
           0.75,
         );
         const oilPrice = finalResourcePrice * (1 - oilModifier);
-        if (this._workshopManager.getValueAvailable("oil") < oilPrice * Math.pow(1.05, build.val)) {
+        if (this._workshopManager.getValueAvailable("oil") < oilPrice * Math.pow(1.05, val)) {
           return false;
         }
 
@@ -590,14 +610,14 @@ export class BulkPurchaseHelper {
         const karmaPrice = finalResourcePrice * (1 - karmaModifier);
         if (
           this._workshopManager.getValueAvailable("karma") <
-          karmaPrice * Math.pow(priceRatio, build.val)
+          karmaPrice * Math.pow(priceRatio, val)
         ) {
           return false;
         }
       } else {
         if (
           this._workshopManager.getValueAvailable(price.name) <
-          finalResourcePrice * Math.pow(priceRatio, build.val)
+          finalResourcePrice * Math.pow(priceRatio, val)
         ) {
           return false;
         }

@@ -44,6 +44,7 @@ export type Game = {
     /** @deprecated Use `getBuildingExt()` instead. */
     get: (build: Building) => BuildingMeta;
     getBuildingExt: (building: Building) => BuildingExt;
+    getPricesWithAccessor: (building: BuildingExt) => Price[];
   };
   calendar: {
     cryptoPrice: number;

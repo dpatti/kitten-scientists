@@ -23,17 +23,17 @@ export class WorkshopManager extends UpgradeManager implements Automation {
     this.manager = new TabManager(this._host, "Workshop");
   }
 
-  tick(context: TickContext) {
+  async tick(context: TickContext) {
     if (!this.settings.enabled) {
       return;
     }
 
-    this.autoCraft();
-    this.refreshStock();
-
     if (this.settings.unlockUpgrades.enabled) {
-      return this.autoUnlock();
+      await this.autoUnlock();
     }
+
+    this.autoCraft();
+    // this.refreshStock();
   }
 
   async autoUnlock() {
@@ -190,7 +190,7 @@ export class WorkshopManager extends UpgradeManager implements Automation {
           // It makes no sense to apply source material balancing here. If we did, we'd stop
           // crafting resources when the source material becomes capped. We would never be able
           // to get enough source stock so the balancing would allow for more crafts.
-          0 < materialResource.maxValue ||
+          (0 < materialResource.maxValue && materialResource.value >= materialResource.maxValue) ||
           // For materials that are also crafted, if they have already been crafted to their `max`,
           // treat them the same as capped source materials, to avoid the same conflict.
           (!isNil(materialCraft) && -1 < materialCraft.max

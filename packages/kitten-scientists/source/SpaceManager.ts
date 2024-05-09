@@ -62,12 +62,17 @@ export class SpaceManager implements Automation {
 
     // Get the current metadata for all the referenced buildings.
     const metaData: Partial<Record<SpaceBuildings, SpaceBuildingInfo>> = {};
+    const buttons: Partial<Record<SpaceBuildings, BuildButton>> = {};
     for (const build of Object.values(builds)) {
       metaData[build.building] = this.getBuild(build.building);
+      const button = this.getBuildButton(build.building);
+      if (button) {
+        buttons[build.building] = button;
+      }
     }
 
     // Let the bulkmanager determine the builds we can make.
-    const buildList = bulkManager.bulk(builds, metaData, trigger, "space");
+    const buildList = bulkManager.bulk(builds, metaData, buttons, trigger, "space");
 
     let refreshRequired = false;
     // Build all entries in the build list, where we can build any items.

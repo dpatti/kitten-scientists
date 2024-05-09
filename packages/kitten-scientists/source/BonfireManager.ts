@@ -70,14 +70,18 @@ export class BonfireManager implements Automation {
 
     // Get the current metadata for all the referenced buildings.
     const metaData: Partial<Record<BonfireItem, BuildingMeta>> = {};
+    const buttons: Partial<Record<BonfireItem, BuildButton>> = {};
     for (const build of Object.values(builds)) {
-      metaData[build.building] = this.getBuild(
-        (build.baseBuilding ?? build.building) as Building,
-      ).meta;
+      const building = (build.baseBuilding ?? build.building) as Building;
+      metaData[build.building] = this.getBuild(building).meta;
+      const button = this.getBuildButton(building, build.stage);
+      if (button) {
+        buttons[build.building] = button;
+      }
     }
 
     // Let the bulkmanager determine the builds we can make.
-    const buildList = bulkManager.bulk(builds, metaData, trigger, "bonfire");
+    const buildList = bulkManager.bulk(builds, metaData, buttons, trigger, "bonfire");
 
     let refreshRequired = false;
     // Build all entries in the build list, where we can build any items.
