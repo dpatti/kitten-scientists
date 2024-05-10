@@ -24,23 +24,23 @@ export class ScienceManager extends UpgradeManager {
     this._workshopManager = workshopManager;
   }
 
-  async tick(context: TickContext) {
+  tick(context: TickContext) {
     if (!this.settings.enabled) {
       return;
     }
 
     // If techs (science items) are enabled...
     if (this.settings.techs.enabled && this._host.game.tabs[2].visible) {
-      await this.autoUnlock();
+      context.upgrade.push(() => this.autoUnlock());
     }
 
     if (this.settings.policies.enabled && this._host.game.tabs[2].visible) {
-      await this.autoPolicy();
+      context.upgrade.push(() => this.autoPolicy());
     }
 
     // Observe astronomical events.
     if (this.settings.observe.enabled) {
-      this.observeStars();
+      context.action.push(() => this.observeStars());
     }
   }
 

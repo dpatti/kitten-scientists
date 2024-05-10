@@ -23,16 +23,16 @@ export class WorkshopManager extends UpgradeManager implements Automation {
     this.manager = new TabManager(this._host, "Workshop");
   }
 
-  async tick(context: TickContext) {
+  tick(context: TickContext) {
     if (!this.settings.enabled) {
       return;
     }
 
     if (this.settings.unlockUpgrades.enabled) {
-      await this.autoUnlock();
+      context.upgrade.push(() => this.autoUnlock());
     }
 
-    this.autoCraft();
+    context.purchase.push(() => this.autoCraft());
     // this.refreshStock();
   }
 

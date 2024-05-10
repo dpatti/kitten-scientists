@@ -48,19 +48,19 @@ export class TimeControlManager {
     this._workshopManager = workshopManager;
   }
 
-  async tick(context: TickContext) {
+  tick(context: TickContext) {
     if (!this.settings.enabled) {
       return;
     }
 
     if (this.settings.accelerateTime.enabled) {
-      this.accelerateTime();
+      context.action.push(() => this.accelerateTime());
     }
     if (this.settings.timeSkip.enabled) {
-      this.timeSkip();
+      context.action.push(() => this.timeSkip());
     }
     if (this.settings.reset.enabled) {
-      await this.autoReset(this._host.engine);
+      context.action.push(() => this.autoReset(this._host.engine));
     }
   }
 

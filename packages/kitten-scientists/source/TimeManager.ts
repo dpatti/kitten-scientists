@@ -39,13 +39,13 @@ export class TimeManager {
       return;
     }
 
-    this.autoBuild();
+    context.purchase.push(() => this.autoBuild());
 
     if (this.settings.fixCryochambers.enabled) {
-      this.fixCryochambers();
+      context.maintenance.push(() => this.fixCryochambers());
     }
     if (this.settings.turnOnChronoFurnace.enabled) {
-      this.turnOnChronoFurnace();
+      context.action.push(() => this.turnOnChronoFurnace());
     }
   }
 

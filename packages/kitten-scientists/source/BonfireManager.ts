@@ -47,8 +47,8 @@ export class BonfireManager implements Automation {
       return;
     }
 
-    this.autoBuild();
-    this.autoMisc();
+    context.purchase.push(() => this.autoBuild());
+    context.action.push(() => this.autoMisc());
   }
 
   /**

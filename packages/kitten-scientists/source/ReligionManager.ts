@@ -50,30 +50,30 @@ export class ReligionManager implements Automation {
     this._bonfireManager = bonfireManager;
   }
 
-  async tick(context: TickContext) {
+  tick(context: TickContext) {
     if (!this.settings.enabled) {
       return;
     }
 
-    this._autoBuild();
+    context.purchase.push(() => this._autoBuild());
 
     if (this.settings.sacrificeUnicorns.enabled) {
-      this._autoSacrificeUnicorns();
+      context.action.push(() => this._autoSacrificeUnicorns());
     }
 
     if (this.settings.sacrificeAlicorns.enabled) {
-      await this._autoSacrificeAlicorns();
+      context.action.push(() => this._autoSacrificeAlicorns());
     }
 
     if (this.settings.refineTears.enabled) {
-      await this._autoTears();
+      context.action.push(() => this._autoTears());
     }
 
     if (this.settings.refineTimeCrystals.enabled) {
-      await this._autoTCs();
+      context.action.push(() => this._autoTCs());
     }
 
-    this._autoTAP();
+    context.action.push(() => this._autoTAP());
   }
 
   private _autoBuild() {

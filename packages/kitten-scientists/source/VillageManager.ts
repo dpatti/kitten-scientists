@@ -33,26 +33,26 @@ export class VillageManager implements Automation {
       return;
     }
 
-    this.autoDistributeKittens();
+    context.action.push(() => this.autoDistributeKittens());
 
     if (this.settings.hunt.enabled) {
-      this.autoHunt(this._cacheManager);
+      context.action.push(() => this.autoHunt(this._cacheManager));
     }
 
     if (this.settings.holdFestivals.enabled) {
-      this.autoFestival(this._cacheManager);
+      context.maintenance.push(() => this.autoFestival(this._cacheManager));
     }
 
     if (this.settings.electLeader.enabled) {
-      this.autoElect();
+      context.action.push(() => this.autoElect());
     }
 
     if (this.settings.promoteLeader.enabled) {
-      this.autoPromoteLeader();
+      context.action.push(() => this.autoPromoteLeader());
     }
 
     if (this.settings.promoteKittens.enabled) {
-      this.autoPromoteKittens();
+      context.action.push(() => this.autoPromoteKittens());
     }
   }
 

@@ -34,9 +34,13 @@ const i18nData = { de, en, he, zh };
 
 export type TickContext = {
   tick: number;
+  maintenance: Array<() => void | Promise<void>>;
+  upgrade: Array<() => void | Promise<void>>;
+  purchase: Array<() => void | Promise<void>>;
+  action: Array<() => void | Promise<void>>;
 };
 export type Automation = {
-  tick(context: TickContext): void | Promise<void>;
+  tick(context: TickContext): void;
 };
 export type EngineState = {
   $schema?: string;
@@ -304,7 +308,13 @@ export class Engine {
    * The main loop of the automation script.
    */
   private async _iterate(): Promise<void> {
-    const context = { tick: new Date().getTime() };
+    const context: TickContext = {
+      tick: new Date().getTime(),
+      maintenance: [],
+      upgrade: [],
+      purchase: [],
+      action: [],
+    };
 
     if (this.settings.filters.disableKGLog.enabled) {
       this._maintainKGLogFilters();
@@ -312,15 +322,21 @@ export class Engine {
 
     // The order in which these actions are performed is probably
     // semi-intentional and should be preserved or improved.
-    await this.scienceManager.tick(context);
+    this.scienceManager.tick(context);
     this.bonfireManager.tick(context);
     this.spaceManager.tick(context);
-    await this.workshopManager.tick(context);
+    this.workshopManager.tick(context);
     this.tradeManager.tick(context);
-    await this.religionManager.tick(context);
+    this.religionManager.tick(context);
     this.timeManager.tick(context);
     this.villageManager.tick(context);
-    await this.timeControlManager.tick(context);
+    this.timeControlManager.tick(context);
+
+    for (const group of [context.maintenance, context.upgrade, context.purchase, context.action]) {
+      for (const automation of group) {
+        await automation();
+      }
+    }
   }
 
   /**

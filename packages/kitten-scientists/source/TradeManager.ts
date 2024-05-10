@@ -28,19 +28,19 @@ export class TradeManager implements Automation {
       return;
     }
 
-    this.autoTrade();
+    context.action.push(() => this.autoTrade());
 
     if (this.settings.unlockRaces.enabled) {
-      this.autoUnlock();
+      context.action.push(() => this.autoUnlock());
     }
     if (this.settings.buildEmbassies.enabled) {
-      this.autoBuildEmbassies();
+      context.purchase.push(() => this.autoBuildEmbassies());
     }
     if (this.settings.feedLeviathans.enabled) {
-      this.autoFeedElders();
+      context.maintenance.push(() => this.autoFeedElders());
     }
     if (this.settings.tradeBlackcoin.enabled) {
-      this.autoTradeBlackcoin();
+      context.action.push(() => this.autoTradeBlackcoin());
     }
   }
 

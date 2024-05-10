@@ -36,10 +36,10 @@ export class SpaceManager implements Automation {
       return;
     }
 
-    this.autoBuild();
+    context.purchase.push(() => this.autoBuild());
 
     if (this.settings.unlockMissions.enabled) {
-      this.autoUnlock();
+      context.upgrade.push(() => this.autoUnlock());
     }
   }
 
