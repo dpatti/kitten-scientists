@@ -169,6 +169,7 @@ export class ReligionManager implements Automation {
       const build = this._bulkManager.bulk(
         buildRequest,
         this.getBuildMetaData(buildRequest),
+        {},
         this.settings.trigger,
       );
       if (0 < build.length && 0 < build[0].count) {
@@ -205,7 +206,7 @@ export class ReligionManager implements Automation {
     > = this.getBuildMetaData(builds);
 
     // Let the bulk manager figure out which of the builds to actually build.
-    const buildList = this._bulkManager.bulk(builds, metaData, this.settings.trigger);
+    const buildList = this._bulkManager.bulk(builds, metaData, {}, this.settings.trigger);
 
     let refreshRequired = false;
     for (const build of buildList) {

@@ -356,7 +356,7 @@ export class BulkPurchaseHelper {
 
         if (spaceOil) {
           maxItemsBuilt =
-            tempPool["oil"] < oilPrice * Math.pow(1.05, unknown_k + buildMetaData.val);
+            tempPool["oil"] < oilPrice * Math.pow(1.05, unknown_k + buildMetaData.val - priceRoot);
         } else if (cryoKarma) {
           maxItemsBuilt =
             tempPool["karma"] <
