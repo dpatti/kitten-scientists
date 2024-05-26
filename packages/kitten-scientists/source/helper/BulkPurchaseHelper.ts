@@ -153,6 +153,36 @@ export class BulkPurchaseHelper {
         : [basePrices, 0];
       const priceRatio = this.getPriceRatio(buildMetaData, sourceTab);
 
+      // temporary
+      const weights: Partial<Record<AllItems, number>> = {
+        pasture: 5,
+        aqueduct: 5,
+        tradepost: 5,
+        smelter: 1.5,
+        mine: 1.5,
+        library: 1.5,
+        quarry: 5,
+        accelerator: 2,
+        calciner: 1.25,
+        factory: 1.2,
+        lumberMill: 1.5,
+        academy: 10,
+        biolab: 4,
+        temple: 8,
+        workshop: 1.1,
+        scholasticism: 10,
+        goldenSpire: 10,
+        sunAltar: 10,
+        stainedGlass: 10,
+      };
+      const w = weights[name];
+
+      if (w && !w) {
+        prices.forEach((p, i) => {
+          prices[i] = Object.assign({}, p, { val: p.val * w });
+        });
+      }
+
       // Check if we can build this item.
       if (!this.singleBuildPossible(buildMetaData, prices, priceRatio, priceRoot, sourceTab)) {
         continue;
